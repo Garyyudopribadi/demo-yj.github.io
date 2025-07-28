@@ -58,6 +58,7 @@ interface CodeArea {
   floor: number;
 }
 
+
 export default function FactoryCodeAreaManagement() {
   const [collapsed, setCollapsed] = useState(false)
   const [time, setTime] = useState(new Date())
@@ -67,6 +68,7 @@ export default function FactoryCodeAreaManagement() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isLayoutModalOpen, setIsLayoutModalOpen] = useState(false)
   const [newCodeArea, setNewCodeArea] = useState({
     code: '',
     factory: '', // Use string for select value initially
@@ -93,8 +95,36 @@ export default function FactoryCodeAreaManagement() {
   const [searchField, setSearchField] = useState("all");
   const [factoryFilter, setFactoryFilter] = useState("");
 
+  const [nickname, setNickname] = useState<string>("");
+
   const router = useRouter()
   const supabase = createClient()
+
+  // Fetch user nickname/profile
+  useEffect(() => {
+    async function fetchUserNickname() {
+      const {
+        data: { user },
+        error: userError
+      } = await supabase.auth.getUser();
+      if (user && user.id) {
+        // Assuming you have a 'profiles' table with 'nickname' field
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('nickname')
+          .eq('id', user.id)
+          .single();
+        if (profile && profile.nickname) {
+          setNickname(profile.nickname);
+        } else {
+          setNickname(user.email || "user");
+        }
+      } else {
+        setNickname("user");
+      }
+    }
+    fetchUserNickname();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -408,7 +438,7 @@ export default function FactoryCodeAreaManagement() {
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <div>
-<h1 className="text-lg md:text-3xl font-bold tracking-tight text-foreground">Factory Code Area Management</h1>
+<h1 className="text-lg md:text-3xl font-bold tracking-tight text-foreground">Code Area</h1>
               <p className="text-muted-foreground text-xs md:text-sm">{formattedDate}</p>
             </div>
           </div>
@@ -419,7 +449,7 @@ export default function FactoryCodeAreaManagement() {
               <p className="text-lg md:text-2xl font-semibold text-foreground">{formattedTime.time}</p>
               <span className="text-xs md:text-sm font-medium text-muted-foreground">{formattedTime.period}</span>
             </div>
-            <p className="text-[10px] md:text-xs text-muted-foreground">user</p>
+            <p className="text-[10px] md:text-xs text-muted-foreground">{nickname}</p>
           </div>
           <button
             onClick={async () => {
@@ -481,10 +511,37 @@ export default function FactoryCodeAreaManagement() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <h2 className="text-xl md:text-3xl font-bold tracking-tight">Factory Code Areas</h2>
-              <Button onClick={() => setIsAddModalOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" /> Add Code Area
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => setIsLayoutModalOpen(true)} variant="outline">
+                  View Factory Layout
+                </Button>
+                <Button onClick={() => setIsAddModalOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" /> Add Code Area
+                </Button>
+              </div>
             </div>
+      {/* Factory Layout Modal */}
+      <Dialog open={isLayoutModalOpen} onOpenChange={setIsLayoutModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Factory Layout - {factoryFilter === '1' ? 'Factory 1' : factoryFilter === '2' ? 'Factory 2' : factoryFilter === '3' ? 'Factory 3' : 'Select Factory'}</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center items-center min-h-[300px]">
+            {factoryFilter === '1' && (
+              <img src="/icons/factory1-layout.png" alt="Factory 1 Layout" className="max-w-full max-h-[400px] rounded shadow" />
+            )}
+            {factoryFilter === '2' && (
+              <img src="/icons/factory2-layout.png" alt="Factory 2 Layout" className="max-w-full max-h-[400px] rounded shadow" />
+            )}
+            {factoryFilter === '3' && (
+              <img src="/icons/factory3-layout.png" alt="Factory 3 Layout" className="max-w-full max-h-[400px] rounded shadow" />
+            )}
+            {!['1','2','3'].includes(factoryFilter) && (
+              <div className="text-center text-muted-foreground">Please select a factory to view its layout.</div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
             {/* Search and Filter */}
             <div className="mt-6 flex gap-2 items-center">

@@ -33,6 +33,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="YONGJIN" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        {/* Favicon for browser tab */}
+        <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
+        <link rel="shortcut icon" href="/icons/icon-192x192.png" />
 
         {/* Google Translate Meta */}
         <meta name="google-translate-customization" content="9f841e7780177523-3214ceb76f765f38-gc38c6fe6f9d06436-c" />
