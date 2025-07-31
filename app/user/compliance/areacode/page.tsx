@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import CodeAreaTable from "@/components/areacode/CodeAreaTable"
 import {
   ChevronRight,
   Menu,
@@ -28,13 +28,8 @@ import {
   Trash2,
   Edit,
 } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import AddEditCodeAreaDialog from "@/components/areacode/AddEditCodeAreaDialog"
+import DeleteCodeAreaDialog from "@/components/areacode/DeleteCodeAreaDialog"
 import {
   Select,
   SelectContent,
@@ -42,6 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import FactoryLayoutDialog from "@/components/areacode/FactoryLayoutDialog"
 import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from "@/components/ui/pagination"
@@ -71,9 +67,9 @@ export default function FactoryCodeAreaManagement() {
   const [isLayoutModalOpen, setIsLayoutModalOpen] = useState(false)
   const [newCodeArea, setNewCodeArea] = useState({
     code: '',
-    factory: '', // Use string for select value initially
+    factory: '',
     area: '',
-    floor: '', // Use string for select value initially
+    floor: '',
   })
   const [editingCodeArea, setEditingCodeArea] = useState<CodeArea | null>(null)
   const [deletingCodeAreaId, setDeletingCodeAreaId] = useState<number | null>(null)
@@ -133,13 +129,16 @@ export default function FactoryCodeAreaManagement() {
     return () => clearInterval(interval)
   }, [])
 
+  // Fetch code areas when page, search, or filter changes
   useEffect(() => {
-    fetchCodeAreas(currentPage, itemsPerPage)
-  }, [currentPage, searchTerm, searchField, factoryFilter]) // Refetch when currentPage, searchTerm, searchField, or factoryFilter changes
+    fetchCodeAreas(currentPage, itemsPerPage);
+  }, [currentPage, searchTerm, searchField, factoryFilter]);
 
-   useEffect(() => {
+  // Fetch total items when search/filter changes
+  useEffect(() => {
     fetchTotalItems();
-  }, []) // Fetch total items on initial load
+    setCurrentPage(1); // Reset to first page when filter/search changes
+  }, [searchTerm, searchField, factoryFilter]);
 
   const fetchCodeAreas = async (page: number, itemsPerPage: number) => {
     setLoading(true)
@@ -200,11 +199,40 @@ export default function FactoryCodeAreaManagement() {
     setLoading(false)
   }
 
-   const fetchTotalItems = async () => {
-    const { count, error } = await supabase
+  const fetchTotalItems = async () => {
+    let query = supabase
       .from('table-codearea')
-      .select('count', { head: true, count: 'exact' });
+      .select('id', { count: 'exact', head: true });
 
+    // Apply factory filter if selected
+    if (factoryFilter) {
+      query = query.eq('factory', parseInt(factoryFilter));
+    }
+
+    // Apply search filter if present
+    if (searchTerm.trim()) {
+      if (searchField === "all") {
+        const filters = [];
+        filters.push(`code.ilike.%${searchTerm.trim()}%`);
+        filters.push(`codearea.ilike.%${searchTerm.trim()}%`);
+        filters.push(`area.ilike.%${searchTerm.trim()}%`);
+        const numValue = Number(searchTerm.trim());
+        if (!isNaN(numValue)) {
+          filters.push(`factory.eq.${numValue}`);
+          filters.push(`floor.eq.${numValue}`);
+        }
+        query = query.or(filters.join(","));
+      } else if (["factory", "floor"].includes(searchField)) {
+        const numValue = Number(searchTerm.trim());
+        if (!isNaN(numValue)) {
+          query = query.eq(searchField, numValue);
+        }
+      } else {
+        query = query.ilike(searchField, `%${searchTerm.trim()}%`);
+      }
+    }
+
+    const { count, error } = await query;
     if (error) {
       console.error('Error fetching total count:', error);
     } else {
@@ -256,7 +284,7 @@ export default function FactoryCodeAreaManagement() {
     return valid;
   };
 
-  const handleAddCodeArea = async () => {
+  const handleAddCodeArea = async (imageFile?: File | null) => {
     if (!validateForm(newCodeArea)) {
       return;
     }
@@ -278,15 +306,15 @@ export default function FactoryCodeAreaManagement() {
     // Generate codearea in requested format: F{factory}-{code}{floor}
     const generatedCodeArea = `F${factory}-${code}${floor}`;
 
+    // 1. Insert code area first
     const { data, error } = await supabase
       .from('table-codearea')
       .insert([
         { code, codearea: generatedCodeArea, factory, area, floor }
       ])
-      .select(); // Select the inserted data to get the generated id and codearea
+      .select();
 
     if (error) {
-      // Show more details if error is empty object
       let errorMsg = typeof error === 'object' && Object.keys(error).length === 0 ? 'Unknown error. Please check Supabase configuration and table permissions.' : JSON.stringify(error);
       console.error('Error adding code area:', errorMsg);
       toast({
@@ -295,7 +323,23 @@ export default function FactoryCodeAreaManagement() {
         variant: "destructive",
       })
     } else {
-      console.log('Code area added successfully:', data);
+      // 2. If image file provided, upload it to storage as {codearea}.png
+      if (imageFile) {
+        const filePath = `${generatedCodeArea}.png`;
+        await supabase.storage.from("layout").remove([filePath]);
+        const { error: uploadError } = await supabase.storage.from("layout").upload(filePath, imageFile, {
+          upsert: true,
+          cacheControl: "3600",
+          contentType: imageFile.type,
+        });
+        if (uploadError) {
+          toast({
+            title: "Warning",
+            description: "Code area added, but failed to upload layout image.",
+            variant: "destructive",
+          });
+        }
+      }
       toast({
         title: "Success",
         description: "Code area added successfully.",
@@ -359,6 +403,21 @@ export default function FactoryCodeAreaManagement() {
   const handleDeleteCodeArea = async () => {
     if (deletingCodeAreaId === null) return;
 
+    // 1. Get the codearea string for the row to delete
+    const { data: codeAreaData, error: fetchError } = await supabase
+      .from('table-codearea')
+      .select('codearea')
+      .eq('id', deletingCodeAreaId)
+      .single();
+
+    let layoutDeleteError = null;
+    if (codeAreaData && codeAreaData.codearea) {
+      // 2. Remove the layout image from storage
+      const { error: storageError } = await supabase.storage.from('layout').remove([`${codeAreaData.codearea}.png`]);
+      layoutDeleteError = storageError;
+    }
+
+    // 3. Delete the code area row
     const { error } = await supabase
       .from('table-codearea')
       .delete()
@@ -366,17 +425,24 @@ export default function FactoryCodeAreaManagement() {
 
     if (error) {
       console.error('Error deleting code area:', error);
-       toast({
+      toast({
         title: "Error",
         description: "Failed to delete code area.",
         variant: "destructive",
       })
     } else {
-      console.log('Code area deleted successfully');
-       toast({
-        title: "Success",
-        description: "Code area deleted successfully.",
-      })
+      if (layoutDeleteError) {
+        toast({
+          title: "Warning",
+          description: "Code area deleted, but failed to delete layout image.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Code area and layout image deleted successfully.",
+        });
+      }
       setIsDeleteModalOpen(false);
       setDeletingCodeAreaId(null);
       // Determine if the current page is now empty after deletion
@@ -508,40 +574,24 @@ export default function FactoryCodeAreaManagement() {
         {/* Main Content */}
         <main className="flex-1 min-h-[calc(100vh-144px)] overflow-y-auto relative pb-[76px] md:pb-0">
           <div className="container px-4 py-6 lg:px-8 mx-auto">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl md:text-3xl font-bold tracking-tight">Factory Code Areas</h2>
-              <div className="flex gap-2">
-                <Button onClick={() => setIsLayoutModalOpen(true)} variant="outline">
+            {/* Header - Responsive for mobile */}
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <h2 className="text-xl md:text-3xl font-bold tracking-tight text-center md:text-left">Factory Code Areas</h2>
+              <div className="flex flex-col gap-2 w-full md:w-auto md:flex-row md:gap-2 md:justify-end">
+                <Button onClick={() => setIsLayoutModalOpen(true)} variant="outline" className="w-full md:w-auto">
                   View Factory Layout
                 </Button>
-                <Button onClick={() => setIsAddModalOpen(true)}>
+                <Button onClick={() => setIsAddModalOpen(true)} className="w-full md:w-auto">
                   <Plus className="mr-2 h-4 w-4" /> Add Code Area
                 </Button>
               </div>
             </div>
-      {/* Factory Layout Modal */}
-      <Dialog open={isLayoutModalOpen} onOpenChange={setIsLayoutModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Factory Layout - {factoryFilter === '1' ? 'Factory 1' : factoryFilter === '2' ? 'Factory 2' : factoryFilter === '3' ? 'Factory 3' : 'Select Factory'}</DialogTitle>
-          </DialogHeader>
-          <div className="flex justify-center items-center min-h-[300px]">
-            {factoryFilter === '1' && (
-              <img src="/icons/factory1-layout.png" alt="Factory 1 Layout" className="max-w-full max-h-[400px] rounded shadow" />
-            )}
-            {factoryFilter === '2' && (
-              <img src="/icons/factory2-layout.png" alt="Factory 2 Layout" className="max-w-full max-h-[400px] rounded shadow" />
-            )}
-            {factoryFilter === '3' && (
-              <img src="/icons/factory3-layout.png" alt="Factory 3 Layout" className="max-w-full max-h-[400px] rounded shadow" />
-            )}
-            {!['1','2','3'].includes(factoryFilter) && (
-              <div className="text-center text-muted-foreground">Please select a factory to view its layout.</div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Factory Layout Modal (with upload) */}
+      <FactoryLayoutDialog
+        open={isLayoutModalOpen}
+        onOpenChange={setIsLayoutModalOpen}
+        factoryFilter={factoryFilter}
+      />
 
             {/* Search and Filter */}
             <div className="mt-6 flex gap-2 items-center">
@@ -568,7 +618,9 @@ export default function FactoryCodeAreaManagement() {
                 </SelectContent>
               </Select>
               {/* Factory Filter Dropdown */}
-              <Select value={factoryFilter || 'all'} onValueChange={value => setFactoryFilter(value === 'all' ? '' : value)}>
+              <Select value={factoryFilter || 'all'} onValueChange={value => {
+                setFactoryFilter(value === 'all' ? '' : value);
+              }}>
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Filter Factory" />
                 </SelectTrigger>
@@ -588,67 +640,33 @@ export default function FactoryCodeAreaManagement() {
                   <CardTitle>Code Area List</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {loading ? (
-                    <div>Loading...</div>
-                  ) : error ? (
-                    <div className="text-red-500">{error}</div>
-                  ) : codeAreas && codeAreas.length > 0 ? (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Code</TableHead>
-                          <TableHead>Code Area</TableHead>
-                          <TableHead>Factory</TableHead>
-                          <TableHead>Area</TableHead>
-                          <TableHead>Floor</TableHead>
-                          <TableHead>Action</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {codeAreas.map((codeArea) => (
-                          <TableRow key={codeArea.id}>
-                            <TableCell>{codeArea.code}</TableCell>
-                            <TableCell>{codeArea.codearea}</TableCell>
-                            <TableCell>{codeArea.factory}</TableCell>
-                            <TableCell>{codeArea.area}</TableCell>
-                            <TableCell>{codeArea.floor}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" onClick={() => handleEditClick(codeArea)}>
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeleteClick(codeArea.id)}>
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <div>No code areas found.</div>
-                  )}
+                  <CodeAreaTable
+                    codeAreas={codeAreas || []}
+                    loading={loading}
+                    error={error}
+                    onEdit={handleEditClick}
+                    onDelete={handleDeleteClick}
+                  />
                 </CardContent>
               </Card>
             </div>
 
-            {/* Pagination Controls */}
+            {/* Pagination Controls - Responsive for mobile */}
             {codeAreas && codeAreas.length > 0 && totalPages > 1 && (
-               <Pagination className="mt-4">
-                <PaginationContent>
+              <Pagination className="mt-4">
+                <PaginationContent className="flex flex-wrap justify-center gap-1 md:gap-2">
                   <PaginationItem>
                     <PaginationPrevious href="#" onClick={(e) => {
                       e.preventDefault();
                       if (currentPage > 1) setCurrentPage(currentPage - 1);
-                    }} />
+                    }} className="min-w-[36px]" />
                   </PaginationItem>
                   {Array.from({ length: totalPages }, (_, index) => (
                     <PaginationItem key={index}>
                       <PaginationLink href="#" isActive={currentPage === index + 1} onClick={(e) => {
-                         e.preventDefault();
+                        e.preventDefault();
                         setCurrentPage(index + 1);
-                      }}>
+                      }} className="min-w-[36px] text-center">
                         {index + 1}
                       </PaginationLink>
                     </PaginationItem>
@@ -657,7 +675,7 @@ export default function FactoryCodeAreaManagement() {
                     <PaginationNext href="#" onClick={(e) => {
                       e.preventDefault();
                       if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-                    }} />
+                    }} className="min-w-[36px]" />
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
@@ -667,191 +685,32 @@ export default function FactoryCodeAreaManagement() {
         </main>
       </div>
 
-      {/* Add Code Area Modal */}
-      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Add New Code Area</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="code" className="text-right">
-                Code
-              </Label>
-              <Input
-                id="code"
-                name="code"
-                value={newCodeArea.code}
-                onChange={handleInputChange}
-                className="col-span-3"
-              />
-               {formErrors.code && <p className="col-span-4 text-right text-red-500 text-sm">{formErrors.code}</p>}
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="factory" className="text-right">
-                Factory
-              </Label>
-              <Select onValueChange={(value) => handleSelectChange('factory', value)} value={newCodeArea.factory}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select Factory" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">F1</SelectItem>
-                  <SelectItem value="2">F2</SelectItem>
-                  <SelectItem value="3">F3</SelectItem>
-                </SelectContent>
-              </Select>
-              {formErrors.factory && <p className="col-span-4 text-right text-red-500 text-sm">{formErrors.factory}</p>}
-            </div>
-             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="area" className="text-right">
-                Area
-              </Label>
-              <Input
-                id="area"
-                name="area"
-                value={newCodeArea.area}
-                onChange={handleInputChange}
-                className="col-span-3"
-              />
-               {formErrors.area && <p className="col-span-4 text-right text-red-500 text-sm">{formErrors.area}</p>}
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="floor" className="text-right">
-                Floor
-              </Label>
-               <Select onValueChange={(value) => handleSelectChange('floor', value)} value={newCodeArea.floor}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select Floor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1</SelectItem>
-                  <SelectItem value="2">2</SelectItem>
-                  <SelectItem value="3">3</SelectItem>
-                  <SelectItem value="4">4</SelectItem>
-                </SelectContent>
-              </Select>
-              {formErrors.floor && <p className="col-span-4 text-right text-red-500 text-sm">{formErrors.floor}</p>}
-            </div>
-             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="codearea" className="text-right">
-                Code Area
-              </Label>
-              <Input
-                id="codearea"
-                name="codearea"
-                value={newCodeArea.code && newCodeArea.factory && newCodeArea.floor ? `F${newCodeArea.factory}-${newCodeArea.code}${newCodeArea.floor}` : ''}
-                className="col-span-3"
-                disabled // Auto-generated
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleAddCodeArea}>Add Code Area</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-       {/* Edit Code Area Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Code Area</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-code" className="text-right">
-                Code
-              </Label>
-              <Input
-                id="edit-code"
-                name="code"
-                value={editingCodeArea?.code || ''}
-                onChange={handleInputChange}
-                className="col-span-3"
-              />
-               {formErrors.code && <p className="col-span-4 text-right text-red-500 text-sm">{formErrors.code}</p>}
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-factory" className="text-right">
-                Factory
-              </Label>
-              <Select onValueChange={(value) => handleSelectChange('factory', value)} value={editingCodeArea?.factory?.toString() || ''}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select Factory" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">F1</SelectItem>
-                  <SelectItem value="2">F2</SelectItem>
-                  <SelectItem value="3">F3</SelectItem>
-                </SelectContent>
-              </Select>
-              {formErrors.factory && <p className="col-span-4 text-right text-red-500 text-sm">{formErrors.factory}</p>}
-            </div>
-             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-area" className="text-right">
-                Area
-              </Label>
-              <Input
-                id="edit-area"
-                name="area"
-                value={editingCodeArea?.area || ''}
-                onChange={handleInputChange}
-                className="col-span-3"
-              />
-               {formErrors.area && <p className="col-span-4 text-right text-red-500 text-sm">{formErrors.area}</p>}
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-floor" className="text-right">
-                Floor
-              </Label>
-               <Select onValueChange={(value) => handleSelectChange('floor', value)} value={editingCodeArea?.floor?.toString() || ''}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select Floor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1</SelectItem>
-                  <SelectItem value="2">2</SelectItem>
-                  <SelectItem value="3">3</SelectItem>
-                  <SelectItem value="4">4</SelectItem>
-                </SelectContent>
-              </Select>
-              {formErrors.floor && <p className="col-span-4 text-right text-red-500 text-sm">{formErrors.floor}</p>}
-            </div>
-             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-codearea" className="text-right">
-                Code Area
-              </Label>
-              <Input
-                id="edit-codearea"
-                name="codearea"
-                value={editingCodeArea?.code && editingCodeArea?.factory && editingCodeArea?.floor ? `F${editingCodeArea.factory}-${editingCodeArea.code}${editingCodeArea.floor}` : ''}
-                className="col-span-3"
-                disabled // Auto-generated
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleEditCodeArea}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Code Area Confirmation Modal */}
-      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Delete Code Area</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <p>Are you sure you want to delete this code area?</p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDeleteCodeArea}>Delete</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Add/Edit Code Area Dialogs */}
+      <AddEditCodeAreaDialog
+        open={isAddModalOpen}
+        onOpenChange={setIsAddModalOpen}
+        isEdit={false}
+        codeArea={newCodeArea}
+        formErrors={formErrors}
+        onInputChange={handleInputChange}
+        onSelectChange={handleSelectChange}
+        onSubmit={handleAddCodeArea}
+      />
+      <AddEditCodeAreaDialog
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        isEdit={true}
+        codeArea={editingCodeArea || { code: '', factory: '', area: '', floor: '' }}
+        formErrors={formErrors}
+        onInputChange={handleInputChange}
+        onSelectChange={handleSelectChange}
+        onSubmit={handleEditCodeArea}
+      />
+      <DeleteCodeAreaDialog
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        onDelete={handleDeleteCodeArea}
+      />
 
       {/* Mobile Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
