@@ -50,8 +50,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/events" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Events
+                <Link href="/news" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  News
                 </Link>
               </li>
               <li>
@@ -114,9 +114,6 @@ const Footer = () => {
             </Link>
             <Link href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">
               Terms of Service
-            </Link>
-            <Link href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-              Staff
             </Link>
           </div>
         </div>
