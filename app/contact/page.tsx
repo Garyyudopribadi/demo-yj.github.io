@@ -79,15 +79,15 @@ export default function ContactPage() {
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-muted-foreground" />
-                <p>+62 812-8927-5271</p>
+                <p>+62 897-4474-820</p>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-muted-foreground" />
-                <p>info@yongjin.co.id</p>
+                <p>info@yongjin.space</p>
               </div>
               <div className="flex items-center gap-3">
                 <Globe className="h-5 w-5 text-muted-foreground" />
-                <p>www.yongjin.co.id</p>
+                <p>www.yongjin.space</p>
               </div>
             </CardContent>
           </Card>
@@ -100,11 +100,11 @@ export default function ContactPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Monday - Friday</span>
-                  <span>8:00 AM - 5:00 PM</span>
+                  <span>7:00 AM - 4:00 PM</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Saturday</span>
-                  <span>8:00 AM - 12:00 PM</span>
+                  <span>7:00 AM - 12:00 PM</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Sunday & Public Holidays</span>
@@ -168,6 +168,7 @@ export default function ContactPage() {
                       <SelectItem value="business">Business Partnership</SelectItem>
                       <SelectItem value="career">Career Inquiry</SelectItem>
                       <SelectItem value="support">Customer Support</SelectItem>
+                      <SelectItem value="grievances">Complaints or Grievances</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>

@@ -143,6 +143,15 @@ const GoogleTranslate = () => {
     }
   }, [initializeGoogleTranslate])
 
+  const clearGoogTransCookie = () => {
+    try {
+      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + window.location.hostname + ';';
+      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+    } catch (e) {
+      // ignore
+    }
+  }
+
   const triggerTranslation = useCallback(
     async (targetLanguage: string) => {
       if (!isLoaded || hasError) {
@@ -156,7 +165,6 @@ const GoogleTranslate = () => {
         // Wait a bit for any pending operations
         await new Promise((resolve) => setTimeout(resolve, 100))
 
-        // Method 1: Try to find and trigger the select element
         const selectElement = document.querySelector(".goog-te-combo") as HTMLSelectElement
         if (selectElement) {
           selectElement.value = targetLanguage
@@ -167,6 +175,14 @@ const GoogleTranslate = () => {
           setTimeout(() => {
             setIsTranslating(false)
           }, 2000)
+          // If switching to English, also clear cookies and reset
+          if (targetLanguage === "en") {
+            clearGoogTransCookie()
+            // Reset select to default
+            selectElement.value = "en"
+            const changeEvent2 = new Event("change", { bubbles: true })
+            selectElement.dispatchEvent(changeEvent2)
+          }
           return
         }
 
@@ -184,6 +200,7 @@ const GoogleTranslate = () => {
           }, 500)
         } else {
           // Reset to original language
+          clearGoogTransCookie()
           const baseUrl = window.location.href.split("#")[0]
           window.history.replaceState(null, "", baseUrl)
 

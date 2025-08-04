@@ -64,11 +64,6 @@ const Footer = () => {
                   Contact Us
                 </Link>
               </li>
-              <li>
-                <Link href="/admin" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                  Admin
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -84,11 +79,11 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">+62 812-8927-5271</span>
+                <span className="text-sm text-muted-foreground">+62 897-4474-820</span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">info@yongjin.co.id</span>
+                <span className="text-sm text-muted-foreground">info@yongjin.space</span>
               </li>
             </ul>
           </div>

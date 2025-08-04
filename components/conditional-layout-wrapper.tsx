@@ -14,7 +14,7 @@ const ConditionalLayoutWrapper = ({ children }: ConditionalLayoutWrapperProps) =
   const pathname = usePathname()
 
   // Define paths that should show header and footer
-  const showHeaderFooterPaths = ["/", "/events", "/careers", "/contact", "/internal"]
+  const showHeaderFooterPaths = ["/", "/news", "/careers", "/contact", "/internal"]
 
   // Check if current path should show header and footer
   const shouldShowHeaderFooter = showHeaderFooterPaths.some((path) => {

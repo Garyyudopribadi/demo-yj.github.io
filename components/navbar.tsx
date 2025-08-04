@@ -7,6 +7,7 @@ import { Menu, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import GoogleTranslate from "./google-translate"
+import Image from "next/image"
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -14,7 +15,7 @@ const Navbar = () => {
 
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "Events", href: "/events" },
+    { name: "News", href: "/news" },
     { name: "Careers", href: "/careers" },
     { name: "Contact Us", href: "/contact" },
   ]
@@ -32,7 +33,15 @@ const Navbar = () => {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center">
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/icons/icon-152x152.png"
+                alt="Yongjin Logo"
+                width={40}
+                height={40}
+                className="h-10 w-10 sm:h-12 sm:w-12"
+                priority
+              />
               <span className="text-xl sm:text-2xl font-bold text-primary tracking-tight">YONGJIN</span>
             </Link>
           </div>
