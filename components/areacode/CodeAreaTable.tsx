@@ -27,6 +27,25 @@ export default function CodeAreaTable({ codeAreas, loading, error, onEdit, onDel
   const [layoutDialogOpen, setLayoutDialogOpen] = useState(false);
   const [selectedCodeArea, setSelectedCodeArea] = useState<string>("");
 
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const handleDeleteRequest = (id: number) => {
+    setPendingDeleteId(id);
+    setShowDeleteModal(true);
+  };
+  const handleDeleteConfirm = () => {
+    if (pendingDeleteId !== null) {
+      onDelete(pendingDeleteId);
+    }
+    setShowDeleteModal(false);
+    setPendingDeleteId(null);
+  };
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setPendingDeleteId(null);
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
   if (!codeAreas || codeAreas.length === 0) return <div>No code areas found.</div>;
@@ -58,7 +77,7 @@ export default function CodeAreaTable({ codeAreas, loading, error, onEdit, onDel
                     <Button variant="ghost" size="icon" onClick={() => { setSelectedCodeArea(codeArea.codearea); setLayoutDialogOpen(true); }} title="View/Update Layout">
                       <ImageIcon className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-red-500" onClick={() => onDelete(codeArea.id)}>
+                    <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeleteRequest(codeArea.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -82,7 +101,7 @@ export default function CodeAreaTable({ codeAreas, loading, error, onEdit, onDel
                 <Button variant="ghost" size="icon" onClick={() => { setSelectedCodeArea(codeArea.codearea); setLayoutDialogOpen(true); }} aria-label="View/Update Layout">
                   <ImageIcon className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="icon" className="text-red-500" onClick={() => onDelete(codeArea.id)} aria-label="Delete">
+                <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeleteRequest(codeArea.id)} aria-label="Delete">
                   <Trash2 className="h-5 w-5" />
                 </Button>
               </div>
@@ -94,6 +113,20 @@ export default function CodeAreaTable({ codeAreas, loading, error, onEdit, onDel
           </div>
         ))}
       </div>
+
+      {/* Delete Warning Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-xs w-full">
+            <h2 className="text-lg font-bold mb-2">Delete Code Area</h2>
+            <p className="mb-4">Are you sure you want to delete this code area?</p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={handleDeleteCancel}>No</Button>
+              <Button variant="destructive" onClick={handleDeleteConfirm}>Yes</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <CodeAreaLayoutDialog
         open={layoutDialogOpen}

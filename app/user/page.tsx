@@ -138,7 +138,7 @@ export default function staffLogin() {
               <LockKeyhole className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">user Login</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">User Login</CardTitle>
           <CardDescription className="text-center">
             Enter your credentials to access the user portal
           </CardDescription>

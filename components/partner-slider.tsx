@@ -261,82 +261,158 @@ const PartnerSlider = () => {
   }
 
   return (
-    <div className="relative w-full overflow-hidden" ref={sliderRef}>
-      <motion.div
-        className="relative w-full cursor-grab active:cursor-grabbing"
-        onMouseEnter={pauseAutoplay}
-        onMouseLeave={resumeAutoplay}
-        onMouseDown={handleDragStart}
-        onMouseMove={handleDragMove}
-        onMouseUp={handleDragEnd}
-        onMouseLeave={handleDragEnd}
-        onTouchStart={handleDragStart}
-        onTouchMove={handleDragMove}
-        onTouchEnd={handleDragEnd}
-        onWheel={handleWheel}
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.8 }}
-      >
-        <motion.div
-          className="flex"
-          animate={controls}
-          style={{ x }}
+    <div className="w-full">
+      {/* Desktop: Arrow di luar slider */}
+      <div className="hidden sm:flex w-full items-center gap-4">
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-full bg-background/80 backdrop-blur-sm shadow-md hover:bg-background border-primary/20 hover:border-primary opacity-70 hover:opacity-100 transition-opacity"
+          onClick={prevSlide}
+          aria-label="Previous slide"
+          suppressHydrationWarning={true}
         >
-          {partners.map((partner, index) => (
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex-1">
+          <div className="relative w-full overflow-hidden" ref={sliderRef}>
             <motion.div
-              key={index}
-              className="flex-shrink-0 p-4"
-              style={{ width: `${100 / itemsToShow}%` }}
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              className="relative w-full cursor-grab active:cursor-grabbing"
+              onMouseEnter={pauseAutoplay}
+              onMouseLeave={resumeAutoplay}
+              onMouseDown={handleDragStart}
+              onMouseMove={handleDragMove}
+              onMouseUp={handleDragEnd}
+              onTouchStart={handleDragStart}
+              onTouchMove={handleDragMove}
+              onTouchEnd={handleDragEnd}
+              onWheel={handleWheel}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8 }}
             >
-              <Link href={partner.website} target="_blank" rel="noopener noreferrer" className="block h-full">
-                <Card className="h-full flex items-center justify-center hover:shadow-lg transition-all duration-300 group bg-background/80 backdrop-blur-sm border-primary/10">
-                  <CardContent className="p-6 flex items-center justify-center">
-                    <div className="relative h-16 w-full">
-                      <Image
-                        src={partner.logo || "/placeholder.svg"}
-                        alt={partner.name}
-                        fill
-                        className="object-contain transition-transform duration-300 group-hover:scale-110"
-                      />
-                    </div>
-                    <span className="absolute bottom-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-center font-medium text-muted-foreground">
-                      {partner.name}
-                    </span>
-                  </CardContent>
-                </Card>
-              </Link>
+              <motion.div
+                className="flex"
+                animate={controls}
+                style={{ x }}
+              >
+                {partners.map((partner, index) => (
+                  <motion.div
+                    key={index}
+                    className="flex-shrink-0 p-4"
+                    style={{ width: `${100 / itemsToShow}%` }}
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  >
+                    <Link href={partner.website} target="_blank" rel="noopener noreferrer" className="block h-full">
+                      <Card className="h-full flex items-center justify-center hover:shadow-lg transition-all duration-300 group bg-background/80 backdrop-blur-sm border-primary/10">
+                        <CardContent className="p-6 flex items-center justify-center">
+                          <div className="relative h-16 w-full">
+                            <Image
+                              src={partner.logo || "/placeholder.svg"}
+                              alt={partner.name}
+                              fill
+                              className="object-contain transition-transform duration-300 group-hover:scale-110"
+                            />
+                          </div>
+                          <span className="absolute bottom-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-center font-medium text-muted-foreground">
+                            {partner.name}
+                          </span>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
+                ))}
+              </motion.div>
             </motion.div>
-          ))}
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-full bg-background/80 backdrop-blur-sm shadow-md hover:bg-background border-primary/20 hover:border-primary opacity-70 hover:opacity-100 transition-opacity"
+          onClick={nextSlide}
+          aria-label="Next slide"
+          suppressHydrationWarning={true}
+        >
+          <ChevronRight className="h-5 w-5" />
+        </Button>
+      </div>
+      {/* Mobile: Arrow tetap absolute di dalam slider */}
+      <div className="relative w-full overflow-hidden sm:hidden" ref={sliderRef}>
+        <motion.div
+          className="relative w-full cursor-grab active:cursor-grabbing"
+          onMouseEnter={pauseAutoplay}
+          onMouseLeave={resumeAutoplay}
+          onMouseDown={handleDragStart}
+          onMouseMove={handleDragMove}
+          onMouseUp={handleDragEnd}
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+          onWheel={handleWheel}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8 }}
+        >
+          <motion.div
+            className="flex"
+            animate={controls}
+            style={{ x }}
+          >
+            {partners.map((partner, index) => (
+              <motion.div
+                key={index}
+                className="flex-shrink-0 p-4"
+                style={{ width: `${100 / itemsToShow}%` }}
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              >
+                <Link href={partner.website} target="_blank" rel="noopener noreferrer" className="block h-full">
+                  <Card className="h-full flex items-center justify-center hover:shadow-lg transition-all duration-300 group bg-background/80 backdrop-blur-sm border-primary/10">
+                    <CardContent className="p-6 flex items-center justify-center">
+                      <div className="relative h-16 w-full">
+                        <Image
+                          src={partner.logo || "/placeholder.svg"}
+                          alt={partner.name}
+                          fill
+                          className="object-contain transition-transform duration-300 group-hover:scale-110"
+                        />
+                      </div>
+                      <span className="absolute bottom-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-center font-medium text-muted-foreground">
+                        {partner.name}
+                      </span>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
         </motion.div>
-      </motion.div>
-
-      {/* Navigation buttons with improved visibility and accessibility - hidden on mobile */}
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm shadow-md hover:bg-background border-primary/20 hover:border-primary z-10 opacity-70 hover:opacity-100 transition-opacity hidden sm:flex"
-        onClick={prevSlide}
-        aria-label="Previous slide"
-        suppressHydrationWarning={true}
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
-
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm shadow-md hover:bg-background border-primary/20 hover:border-primary z-10 opacity-70 hover:opacity-100 transition-opacity hidden sm:flex"
-        onClick={nextSlide}
-        aria-label="Next slide"
-        suppressHydrationWarning={true}
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
-
+        {/* Arrow absolute di mobile */}
+        <Button
+          variant="outline"
+          size="icon"
+          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm shadow-md hover:bg-background border-primary/20 hover:border-primary z-10 opacity-70 hover:opacity-100 transition-opacity"
+          onClick={prevSlide}
+          aria-label="Previous slide"
+          suppressHydrationWarning={true}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm shadow-md hover:bg-background border-primary/20 hover:border-primary z-10 opacity-70 hover:opacity-100 transition-opacity"
+          onClick={nextSlide}
+          aria-label="Next slide"
+          suppressHydrationWarning={true}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
       {/* Improved dots indicator */}
       <div className="flex justify-center mt-6 gap-2">
         {Array.from({ length: Math.ceil(partners.length / itemsToShow) }).map((_, index) => {

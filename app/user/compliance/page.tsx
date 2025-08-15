@@ -94,11 +94,11 @@ const menuItems = [
     href: "/user/compliance/areacode"
   },
   {
-    id: "Events Articles",
-    title: "Events Articles",
-    description: "Manage and view Content Events Page",
+    id: "Content",
+    title: "Content Management",
+    description: "Manage and view Content Yongjin Page",
     icon: <FilePieChart className="h-8 w-8" />,
-    href: "/user/compliance/events"
+    href: "/user/compliance/content"
   }
 ]
 
@@ -159,14 +159,14 @@ export default function ComplianceDashboard() {
   return (
     <div className="min-h-screen bg-muted/30 text-foreground selection:bg-primary selection:text-primary-foreground">
       {/* Top bar with time and user info - Made sticky */}
-      <header className="sticky top-0 z-50 p-6 flex justify-between items-center border-b border-primary/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-40 p-4 sm:p-6 flex justify-between items-center border-b border-primary/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Compliance Dashboard</h1>
-          <p className="text-muted-foreground text-sm">{formattedDate}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Compliance Dashboard</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm">{formattedDate}</p>
         </div>
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-3 sm:gap-5">
           <div className="text-right">
-            <p className="text-2xl font-semibold text-foreground">{formattedTime}</p>
+            <p className="text-lg sm:text-2xl font-semibold text-foreground">{formattedTime}</p>
             <p className="text-xs text-muted-foreground">Welcome, {nickname}</p>
           </div>
           <button
@@ -174,7 +174,7 @@ export default function ComplianceDashboard() {
               await supabase.auth.signOut()
               router.push("/user")
             }}
-            className="p-3 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+            className="p-2 sm:p-3 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
             aria-label="Logout"
           >
             <LogOut className="h-5 w-5" />
@@ -182,9 +182,9 @@ export default function ComplianceDashboard() {
         </div>
       </header>
 
-      {/* Main menu grid - Added padding top to prevent content from hiding under sticky header */}
-      <main className="px-6 py-10 sm:px-8 md:py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+      {/* Main menu grid - Tambahkan padding-top agar tidak overlap dengan header sticky di mobile */}
+      <main className="pt-[72px] sm:pt-[90px] px-3 sm:px-6 pb-10 sm:pb-12 min-h-[calc(100vh-160px)]">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
           {menuItems.map((item) => (
             <motion.div
               key={item.id}
@@ -192,32 +192,28 @@ export default function ComplianceDashboard() {
               whileTap={{ scale: 0.97 }}
               onHoverStart={() => setSelectedItem(item.id)}
               onHoverEnd={() => setSelectedItem(null)}
-              className="group" // Added group here for card children hover states
+              className="group"
             >
               <Link href={item.href} className="block h-full">
                 <Card
-                  className={`h-full overflow-hidden relative cursor-pointer border-primary/20 shadow-lg hover:shadow-xl 
-                                 transition-all duration-300 ease-in-out backdrop-blur-sm bg-background/95
-                                 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-xl`}
+                  className={`h-full overflow-hidden relative cursor-pointer border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out backdrop-blur-sm bg-background/95 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-xl`}
                 >
-                  {/* Background gradient removed */}
-
                   {/* Content */}
-                  <div className="relative p-5 sm:p-6 h-full flex flex-col justify-between z-10">
+                  <div className="relative p-4 sm:p-5 h-full flex flex-col justify-between z-10">
                     <div className="flex justify-between items-start">
-                      <div className="bg-primary/10 p-3 sm:p-4 rounded-lg shadow-md group-hover:scale-105 transition-transform duration-300">
+                      <div className="bg-primary/10 p-2 sm:p-3 rounded-lg shadow-md group-hover:scale-105 transition-transform duration-300">
                         {React.cloneElement(item.icon, { className: `${item.icon.props.className} text-primary` })}
                       </div>
                       <ChevronRight
-                        className={`h-7 w-7 text-muted-foreground opacity-0 group-hover:opacity-100 transform transition-all duration-300 group-hover:translate-x-0 -translate-x-3 group-hover:text-primary`}
+                        className={`h-6 sm:h-7 w-6 sm:w-7 text-muted-foreground opacity-0 group-hover:opacity-100 transform transition-all duration-300 group-hover:translate-x-0 -translate-x-3 group-hover:text-primary`}
                       />
                     </div>
 
-                    <div className="mt-6">
-                      <h2 className="text-xl sm:text-2xl font-semibold mb-1 tracking-tight text-foreground group-hover:text-primary transition-colors duration-300">
+                    <div className="mt-4 sm:mt-6">
+                      <h2 className="text-base sm:text-xl md:text-2xl font-semibold mb-1 tracking-tight text-foreground group-hover:text-primary transition-colors duration-300">
                         {item.title}
                       </h2>
-                      <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">
+                      <p className="text-xs sm:text-sm text-muted-foreground group-hover:text-foreground transition-colors duration-300">
                         {item.description}
                       </p>
                     </div>
@@ -230,7 +226,7 @@ export default function ComplianceDashboard() {
       </main>
 
       {/* Footer */}
-      <footer className="p-6 text-center text-xs text-muted-foreground border-t border-primary/20 mt-8 bg-muted/10">
+      <footer className="p-4 sm:p-6 text-center text-xs text-muted-foreground border-t border-primary/20 mt-8 bg-muted/10">
         <p>© 2025 PT.YONGJIN JAVASUKA GARMENT. All rights reserved.</p>
         <p>⚡ Powered & Created By Garyudo</p>
       </footer>

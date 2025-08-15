@@ -37,13 +37,15 @@ export default function Home() {
       >
         {/* Background Image with Parallax Effect */}
         <motion.div className="absolute inset-0 z-0" style={{ scale, opacity }}>
-          <Image
-            src="/placeholder.svg?height=1080&width=1920"
-            alt="Yongjin Factory"
-            fill
-            className="object-cover brightness-[0.6]"
-            priority
-          />
+          <video
+                 src="/yongjin.mp4"
+                 autoPlay
+                 muted
+                 loop
+                 playsInline
+                 className="object-cover w-full h-full brightness-[0.6]"
+                 style={{ position: "absolute", inset: 0 }}
+            />
         </motion.div>
 
         {/* Overlay Gradient */}
@@ -109,7 +111,7 @@ export default function Home() {
             animate={{ y: [0, 10, 0] }}
             transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, repeatType: "loop" }}
           >
-            <ChevronDown className="h-10 w-10 text-white/80" />
+            <ChevronDown className="h-10 w-10 text-black/80" />
           </motion.div>
         </motion.div>
       </motion.div>
@@ -127,7 +129,7 @@ export default function Home() {
           >
             <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-2xl">
               <Image
-                src="/placeholder.svg?height=800&width=600"
+                src="/factory.JPG"
                 alt="Yongjin Factory Building"
                 fill
                 className="object-cover"
@@ -205,7 +207,7 @@ export default function Home() {
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8 }}
             >
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">State Of Yongjin Facilities</h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Site Of Yongjin Facilities</h2>
               <p className="text-muted-foreground md:text-lg max-w-[800px]">
                 Explore our modern manufacturing facilities designed for efficiency, quality, and sustainability.
               </p>

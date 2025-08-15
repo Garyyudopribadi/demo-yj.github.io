@@ -1,4 +1,5 @@
 import type React from "react"
+import DisableDevTools from "@/components/DisableDevTools"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
@@ -25,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning={true}>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#2563eb" />
@@ -42,15 +43,16 @@ export default function RootLayout({
         <meta name="google-translate-customization" content="9f841e7780177523-3214ceb76f765f38-gc38c6fe6f9d06436-c" />
       </head>
       <body className={inter.className} suppressHydrationWarning>
-        <ErrorBoundary>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-            <PWAWrapper>
-              <AppWrapper>
-                <ConditionalLayoutWrapper>{children}</ConditionalLayoutWrapper>
-              </AppWrapper>
-            </PWAWrapper>
-          </ThemeProvider>
-        </ErrorBoundary>
+          <DisableDevTools />
+          <ErrorBoundary>
+            <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+              <PWAWrapper>
+                <AppWrapper>
+                  <ConditionalLayoutWrapper>{children}</ConditionalLayoutWrapper>
+                </AppWrapper>
+              </PWAWrapper>
+            </ThemeProvider>
+          </ErrorBoundary>
       </body>
     </html>
   )

@@ -78,11 +78,12 @@ const GoogleTranslate = () => {
       console.log("Google Translate script loaded successfully")
     }
 
-    script.onerror = (error) => {
-      console.error("Failed to load Google Translate script:", error)
-      setHasError(true)
-      setIsLoaded(false)
-    }
+      script.onerror = (error) => {
+        console.error("Failed to load Google Translate script:", error, script.src)
+        // Error will be hidden from user, dropdown will be disabled
+        setHasError(true)
+        setIsLoaded(false)
+      }
 
     // Add CSS to hide Google's UI
     const addStyles = () => {
@@ -136,10 +137,8 @@ const GoogleTranslate = () => {
         console.log("Style cleanup error:", error)
       }
 
-      // Clean up global callback
-      if (window.googleTranslateElementInit) {
-        delete window.googleTranslateElementInit
-      }
+  // Clean up global callback
+  delete (window as any).googleTranslateElementInit;
     }
   }, [initializeGoogleTranslate])
 
@@ -236,15 +235,7 @@ const GoogleTranslate = () => {
 
   const currentLang = languages.find((lang) => lang.code === currentLanguage) || languages[0]
 
-  // Don't render if there's an error
-  if (hasError) {
-    return (
-      <Button variant="ghost" size="sm" className="h-9 px-3 gap-2" disabled>
-        <Globe className="h-4 w-4 opacity-50" />
-        <span className="hidden sm:inline text-xs opacity-50">🌐</span>
-      </Button>
-    )
-  }
+  // Hide error message, just disable translation menu/button if error
 
   return (
     <>
@@ -286,7 +277,7 @@ const GoogleTranslate = () => {
       {/* Custom Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-9 px-3 gap-2" disabled={isTranslating || !isLoaded}>
+          <Button variant="ghost" size="sm" className="h-9 px-3 gap-2" disabled={isTranslating || !isLoaded || hasError}>
             {isTranslating ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
@@ -304,7 +295,7 @@ const GoogleTranslate = () => {
               key={language.code}
               onClick={() => handleLanguageChange(language.code)}
               className="flex items-center justify-between cursor-pointer py-3"
-              disabled={isTranslating || !isLoaded}
+              disabled={isTranslating || !isLoaded || hasError}
             >
               <div className="flex items-center gap-3">
                 <span className="text-lg">{language.flag}</span>
