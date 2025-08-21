@@ -10,27 +10,27 @@ const programs = [
     title: "Rise Gap Inc",
     description:
       "Participating in Gap Inc's Responsible Investment and Sourcing for Equality program to promote gender equality and women's empowerment.",
-    image: "/placeholder.svg?height=200&width=300",
+    image: "/rise.png?height=200&width=300",
     icon: Users,
   },
   {
     title: "Vendor Code Of Ethics",
     description:
       "Adhering to strict ethical standards in all our business operations and relationships with partners and suppliers.",
-    image: "/placeholder.svg?height=200&width=300",
+    image: "/codeofethic.png?height=200&width=300",
     icon: Award,
   },
   {
     title: "Gender Based Violence Prevention",
     description: "Implementing comprehensive policies and training to prevent gender-based violence in the workplace.",
-    image: "/placeholder.svg?height=200&width=300",
+    image: "/gbv.png?height=200&width=300",
     icon: Shield,
   },
   {
     title: "HIGG Index",
     description:
       "Using the HIGG Index to measure and improve our environmental and social impacts across the value chain.",
-    image: "/placeholder.svg?height=200&width=300",
+    image: "/higg.png?height=200&width=300",
     icon: Leaf,
   },
 ]
