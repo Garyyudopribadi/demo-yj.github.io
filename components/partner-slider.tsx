@@ -12,52 +12,53 @@ import { motion, useAnimation, useMotionValue, useTransform } from "framer-motio
 const partners = [
   {
     name: "The North Face",
-    logo: "/placeholder.svg?height=80&width=160",
+    // use direct public paths (no query params) so Next Image resolves local files reliably
+    logo: "/tnf.png",
     website: "https://www.thenorthface.com",
   },
   {
     name: "Lululemon",
-    logo: "/placeholder.svg?height=80&width=160",
+    logo: "/lululemon.png",
     website: "https://www.lululemon.com",
   },
   {
     name: "Arc'teryx",
-    logo: "/placeholder.svg?height=80&width=160",
+    logo: "/arcteryx.png",
     website: "https://www.arcteryx.com",
   },
   {
     name: "Athleta",
-    logo: "/placeholder.svg?height=80&width=160",
+    logo: "/athleta.png",
     website: "https://www.athleta.com",
   },
   {
     name: "Kjus",
-    logo: "/placeholder.svg?height=80&width=160",
+    logo: "/kjus.png",
     website: "https://www.kjus.com",
   },
   {
     name: "Kathmandu",
-    logo: "/placeholder.svg?height=80&width=160",
+    logo: "/kathmandu.png",
     website: "https://www.kathmandu.com",
   },
   {
     name: "Vuori",
-    logo: "/placeholder.svg?height=80&width=160",
+    logo: "/vuori.png",
     website: "https://www.vuoriclothing.com",
   },
   {
     name: "Ulvine",
-    logo: "/placeholder.svg?height=80&width=160",
+    logo: "/ulvine.png",
     website: "https://www.ulvine.com",
   },
   {
     name: "SSEN10",
-    logo: "/placeholder.svg?height=80&width=160",
+    logo: "/ssen10.png",
     website: "https://www.ssen10.com",
   },
   {
     name: "Bogner",
-    logo: "/placeholder.svg?height=80&width=160",
+    logo: "/bogner.png",
     website: "https://www.bogner.com",
   },
 ]
@@ -308,11 +309,12 @@ const PartnerSlider = () => {
                     <Link href={partner.website} target="_blank" rel="noopener noreferrer" className="block h-full">
                       <Card className="h-full flex items-center justify-center hover:shadow-lg transition-all duration-300 group bg-background/80 backdrop-blur-sm border-primary/10">
                         <CardContent className="p-6 flex items-center justify-center">
-                          <div className="relative h-16 w-full">
+                          <div className="flex items-center justify-center h-16 w-full">
                             <Image
-                              src={partner.logo || "/placeholder.svg"}
+                              src={partner.logo || "/placeholder-logo.svg"}
                               alt={partner.name}
-                              fill
+                              width={160}
+                              height={80}
                               className="object-contain transition-transform duration-300 group-hover:scale-110"
                             />
                           </div>
@@ -373,11 +375,12 @@ const PartnerSlider = () => {
                 <Link href={partner.website} target="_blank" rel="noopener noreferrer" className="block h-full">
                   <Card className="h-full flex items-center justify-center hover:shadow-lg transition-all duration-300 group bg-background/80 backdrop-blur-sm border-primary/10">
                     <CardContent className="p-6 flex items-center justify-center">
-                      <div className="relative h-16 w-full">
+                      <div className="flex items-center justify-center h-16 w-full">
                         <Image
-                          src={partner.logo || "/placeholder.svg"}
+                          src={partner.logo || "/placeholder-logo.svg"}
                           alt={partner.name}
-                          fill
+                          width={160}
+                          height={80}
                           className="object-contain transition-transform duration-300 group-hover:scale-110"
                         />
                       </div>
@@ -391,27 +394,7 @@ const PartnerSlider = () => {
             ))}
           </motion.div>
         </motion.div>
-        {/* Arrow absolute di mobile */}
-        <Button
-          variant="outline"
-          size="icon"
-          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm shadow-md hover:bg-background border-primary/20 hover:border-primary z-10 opacity-70 hover:opacity-100 transition-opacity"
-          onClick={prevSlide}
-          aria-label="Previous slide"
-          suppressHydrationWarning={true}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 backdrop-blur-sm shadow-md hover:bg-background border-primary/20 hover:border-primary z-10 opacity-70 hover:opacity-100 transition-opacity"
-          onClick={nextSlide}
-          aria-label="Next slide"
-          suppressHydrationWarning={true}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+  {/* Mobile: arrows intentionally hidden to allow touch swiping */}
       </div>
       {/* Improved dots indicator */}
       <div className="flex justify-center mt-6 gap-2">
